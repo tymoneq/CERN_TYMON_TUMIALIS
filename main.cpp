@@ -1,8 +1,12 @@
+#include "include/EventGenerator.hpp"
 #include <iostream>
-#include "Pythia8/Pythia.h"
-
 
 int main() {
-std::cout << "Projekt CERN_Tymon_Tumialis dziala!\n";
-return 0;
+
+  EventGenerator eg;
+  if (!eg.init(2212, 2212, "MinimumBias", 13600.0)) {
+    return 1;
+  }
+
+  return 0;
 }

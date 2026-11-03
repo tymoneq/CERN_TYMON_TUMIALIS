@@ -12,7 +12,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(PYTHIA_PATH "/home/tymon/coding/Pythia/pythia8318") 
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-add_executable(app main.cpp)
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+add_executable(app main.cpp ${SOURCES})
 
 # 2. Globalne flagi kompilatora (ostrzeżenia, polecane zawsze)
 target_compile_options(app PRIVATE -Wall -Wextra -Wpedantic)
@@ -20,7 +21,7 @@ target_compile_options(app PRIVATE -Wall -Wextra -Wpedantic)
 # 3. Flagi specyficzne dla konkretnego trybu (Modern CMake)
 target_compile_options(app PRIVATE
     # Tryb Debug: wyłączenie optymalizacji (-O0), maksymalne informacje do debuggera (-g3)
-    $<$<CONFIG:Debug>:-O0 -g3 -DDEBUG>
+    $<$<CONFIG:Debug>:-O0 -DDEBUG -Wshadow -Wall -fsanitize=address,leak,undefined,float-divide-by-zero,float-cast-overflow -g -fsignaling-nans -fnon-call-exceptions -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC >
     
     # Tryb Release: maksymalna optymalizacja (-O3), optymalizacja pod procesor (-march=native)
     $<$<CONFIG:Release>:-O3 -march=native>
