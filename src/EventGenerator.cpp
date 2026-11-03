@@ -22,15 +22,15 @@ bool EventGenerator::init(const int32_t particle_a, const int32_t particle_b,
   return success_init;
 }
 
-void EventGenerator::generate(const int num_of_events) {
+void EventGenerator::generate(const int32_t num_of_events) {
 
-  for (int iEvent = 0; iEvent < num_of_events; iEvent++) {
+  for (int32_t iEvent = 0; iEvent < num_of_events; iEvent++) {
 
     if (!pythia.next())
       continue;
-
-    std::vector<const Particle *>
-        finalParticles; // this prevents doing deep copy of particles
+    
+    // this prevents doing deep copy of particles
+    std::vector<const Particle *> finalParticles;
     finalParticles.reserve(pythia.event.size());
 
     for (int i = 0; i < pythia.event.size(); ++i) {
@@ -38,6 +38,6 @@ void EventGenerator::generate(const int num_of_events) {
         finalParticles.push_back(&pythia.event[i]);
       }
     }
-    // analyze
+    Analyzer::get().analyze(finalParticles);
   }
 }

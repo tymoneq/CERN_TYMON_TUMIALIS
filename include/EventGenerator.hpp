@@ -1,4 +1,6 @@
 #include "Pythia8/Pythia.h"
+#include "Analyzer.hpp"
+#pragma once
 
 using namespace Pythia8;
 

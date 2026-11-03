@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Pythia8/Pythia.h"
 #include "TFile.h"
 #include "TH1F.h"
