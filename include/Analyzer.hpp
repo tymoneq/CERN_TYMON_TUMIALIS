@@ -1,5 +1,4 @@
 #include "Pythia8/Pythia.h"
-#include "TFile.h"
 #include "TH1F.h"
 #include <cmath>
 #include <vector>
@@ -23,11 +22,9 @@ struct GeneralHistogram {
 
 class Analyzer {
 private:
-  size_t NUM_OF_TYPES;
   std::vector<GeneralHistogram> allHistograms;
 
 public:
-  Analyzer(const size_t num_of_types = 4) : NUM_OF_TYPES(num_of_types) {
-    allHistograms.resize(NUM_OF_TYPES);
-  }
+
+
 };

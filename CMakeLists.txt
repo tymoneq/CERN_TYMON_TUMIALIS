@@ -1,32 +1,54 @@
 cmake_minimum_required(VERSION 3.15)
 project(CERN_Tymon_Tumialis CXX)
 
-# 1. Ustawienie domyślnego trybu budowania na Release (jeśli nie wybrano inaczej)
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Wybierz tryb budowania: Debug lub Release" FORCE)
+    set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
+# 1. Standard C++20 (wymagany przez ROOT)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(PYTHIA_PATH "/home/tymon/coding/Pythia/pythia8318") 
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# 2. Tworzenie atrapy pliku vdtMath.h, aby oszukać skrypt spradzający wersję FindVdt.cmake
+file(WRITE "${CMAKE_BINARY_DIR}/fake_vdt/vdt/vdtMath.h" "#define VDT_VERSION 0.4.4\n")
+set(VDT_INCLUDE_DIR "${CMAKE_BINARY_DIR}/fake_vdt" CACHE PATH "" FORCE)
+set(VDT_LIBRARY "/usr/lib/libdl.so" CACHE FILEPATH "" FORCE)
+set(VDT_FOUND TRUE CACHE BOOL "" FORCE)
+set(Vdt_FOUND TRUE CACHE BOOL "" FORCE)
+
+# 3. Wyszukiwanie pakietu ROOT
+find_package(ROOT REQUIRED COMPONENTS Core Hist RIO)
+
+# 4. Automatyczne zbieranie źródeł C++
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+
+# 5. Utworzenie celu wykonywalnego
 add_executable(app main.cpp ${SOURCES})
 
-# 2. Globalne flagi kompilatora (ostrzeżenia, polecane zawsze)
+# 6. Flagi kompilatora
 target_compile_options(app PRIVATE -Wall -Wextra -Wpedantic)
-
-# 3. Flagi specyficzne dla konkretnego trybu (Modern CMake)
 target_compile_options(app PRIVATE
-    # Tryb Debug: wyłączenie optymalizacji (-O0), maksymalne informacje do debuggera (-g3)
-    $<$<CONFIG:Debug>:-O0 -DDEBUG -Wshadow -Wall -fsanitize=address,leak,undefined,float-divide-by-zero,float-cast-overflow -g -fsignaling-nans -fnon-call-exceptions -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC >
-    
-    # Tryb Release: maksymalna optymalizacja (-O3), optymalizacja pod procesor (-march=native)
+    $<$<CONFIG:Debug>:-O0 -g3 -DDEBUG>
     $<$<CONFIG:Release>:-O3 -march=native>
 )
 
-target_include_directories(app PRIVATE ${PYTHIA_PATH}/include)
+# 7. Ścieżki nagłówkowe
+target_include_directories(app PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${PYTHIA_PATH}/include
+    ${ROOT_INCLUDE_DIRS}
+)
+
+# 8. Linkowanie Pythii 8 oraz ROOT-a
 target_link_directories(app PRIVATE ${PYTHIA_PATH}/lib)
-target_link_libraries(app PRIVATE pythia8 dl)
+target_link_libraries(app PRIVATE 
+    pythia8 
+    dl 
+    ROOT::Core 
+    ROOT::Hist 
+    ROOT::RIO
+)
