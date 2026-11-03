@@ -35,3 +35,8 @@ void GeneralHistogram::write() {
   h_eta->Write();
   h_phi->Write();
 }
+
+void Analyzer::addChannel(ParticleFilter filter, const std::string &key,
+                          const std::string &title_label) {
+  channels.emplace_back(std::move(filter), GeneralHistogram(key, title_label));
+}

@@ -1,9 +1,12 @@
 #include "Pythia8/Pythia.h"
 #include "TH1F.h"
 #include <cmath>
+#include <functional>
 #include <vector>
 
 using namespace Pythia8;
+
+using ParticleFilter = std::function<bool(const Particle *)>;
 
 struct GeneralHistogram {
   std::string name;
@@ -22,9 +25,15 @@ struct GeneralHistogram {
 
 class Analyzer {
 private:
-  std::vector<GeneralHistogram> allHistograms;
+  std::vector<pair<ParticleFilter, GeneralHistogram>> channels;
+  Analyzer();
 
 public:
+  static auto &get() {
+    static Analyzer singleton;
+    return singleton;
+  }
 
-
+  void addChannel(ParticleFilter filter, const std::string &key,
+                  const std::string &title_label);
 };
