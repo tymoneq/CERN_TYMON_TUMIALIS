@@ -1,4 +1,5 @@
 #include "../include/EventGenerator.hpp"
+#include <vector>
 
 bool EventGenerator::init(const int32_t particle_a, const int32_t particle_b,
                           const std::string &proccess_type, const double eCM) {
@@ -28,9 +29,15 @@ void EventGenerator::generate(const int num_of_events) {
     if (!pythia.next())
       continue;
 
-    for (int i = 0; i < pythia.event.size(); ++i)
-      if (pythia.event[i].isFinal() && pythia.event[i].isCharged()) {
-        std::cout << typeof(pythia.event[i]) << "\n";
+    std::vector<const Particle *>
+        finalParticles; // this prevents doing deep copy of particles
+    finalParticles.reserve(pythia.event.size());
+
+    for (int i = 0; i < pythia.event.size(); ++i) {
+      if (pythia.event[i].isFinal()) {
+        finalParticles.push_back(&pythia.event[i]);
       }
+    }
+    // analyze
   }
 }
