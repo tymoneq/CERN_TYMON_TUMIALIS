@@ -40,3 +40,26 @@ void Analyzer::addChannel(ParticleFilter filter, const std::string &key,
                           const std::string &title_label) {
   channels.emplace_back(std::move(filter), GeneralHistogram(key, title_label));
 }
+void Analyzer::analyze(const std::vector<const Particle *> &Particles) {
+
+  for (const auto *p : Particles) {
+    for (auto &[filter, histos] : channels) {
+      if (filter(p)) {
+        histos.fillParticle(p);
+      }
+    }
+  }
+
+  for (auto &[filter, histos] : channels) {
+    histos.endEvent();
+  }
+}
+
+void Analyzer::saveToFile(const std::string &filename) {
+  TFile outFile(filename.c_str(), "RECREATE");
+  for (auto &[filter, histos] : channels) {
+    histos.write();
+  }
+  outFile.Close();
+}
+

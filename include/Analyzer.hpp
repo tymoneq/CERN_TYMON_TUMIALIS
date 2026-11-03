@@ -1,4 +1,5 @@
 #include "Pythia8/Pythia.h"
+#include "TFile.h"
 #include "TH1F.h"
 #include <cmath>
 #include <functional>
@@ -26,7 +27,10 @@ struct GeneralHistogram {
 class Analyzer {
 private:
   std::vector<pair<ParticleFilter, GeneralHistogram>> channels;
-  Analyzer();
+  Analyzer() = default;
+
+  Analyzer(const Analyzer &) = delete;
+  Analyzer &operator=(const Analyzer &) = delete;
 
 public:
   static auto &get() {
@@ -36,4 +40,9 @@ public:
 
   void addChannel(ParticleFilter filter, const std::string &key,
                   const std::string &title_label);
+
+  void analyze(const std::vector<const Particle *> &Particles);
+
+  void saveToFile(const std::string &filename = "analysis.root");
+  ~Analyzer() = default;
 };

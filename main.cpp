@@ -42,7 +42,11 @@ int main() {
   if (!eg.init(2212, 2212, "MinimumBias", 13600.0)) {
     return 1;
   }
+  std::cout << "Starting generating events\n";
+
   eg.generate();
+
+  Analyzer::get().saveToFile();
 
   return 0;
 }
