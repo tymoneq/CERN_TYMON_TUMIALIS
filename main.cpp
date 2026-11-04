@@ -2,7 +2,7 @@
 #include "include/EventGenerator.hpp"
 #include <iostream>
 
-constexpr int num_of_threads = 4;
+constexpr int num_of_threads = 8;
 constexpr int batch_size = 100'000 / num_of_threads;
 
 // Run an independent Pythia generator and analyzer for one worker thread.

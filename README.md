@@ -34,7 +34,7 @@ Run these commands from the project root. The simulation writes `analysis.root` 
 
 ## What the program does
 
-1. `main.cpp` creates eight worker threads. Each worker initializes its own Pythia instance for proton beams (`2212`, `2212`), minimum-bias SoftQCD, and `eCM = 13600` GeV. Each processes 25000 event attempts, for 100,000 attempts in total. A distinct deterministic Pythia seed is assigned to each worker (1 through 4).
+1. `main.cpp` creates eight worker threads. Each worker initializes its own Pythia instance for proton beams (`2212`, `2212`), minimum-bias SoftQCD, and `eCM = 13600` GeV. Each processes 12500 event attempts, for 100,000 attempts in total. A distinct deterministic Pythia seed is assigned to each worker (1 through 8).
 2. `EventGenerator` skips attempts for which `pythia.next()` fails. For each successfully generated event, it collects only particles marked as final state by Pythia's `isFinal()` and passes them to the analyzer.
 3. `Analyzer` fills distributions for all charged particles and for π+, π−, K+, K−, protons, and antiprotons. For each category it records the per-event multiplicity and the particle-level transverse momentum, pseudorapidity, and azimuthal angle.
 4. Each thread accumulates its own histograms. After all threads finish, `main.cpp` adds the worker histograms and saves the combined output to `analysis.root`.

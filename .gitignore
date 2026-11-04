@@ -4,3 +4,5 @@ compile_commands.json
 /bin
 /pythia8318
 /plots
+.env
+.vscode/
