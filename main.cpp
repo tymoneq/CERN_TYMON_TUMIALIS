@@ -2,51 +2,31 @@
 #include "include/EventGenerator.hpp"
 #include <iostream>
 
-void create_channels() {
-  std::cout << "Starting creating channels\n";
+constexpr int num_of_threads = 4;
+constexpr int batch_size = 100'000 / num_of_threads;
 
-  // 2. Cząstki naładowane
-  Analyzer::get().addChannel(
-      [](const Pythia8::Particle *p) { return p->isCharged(); }, "ch",
-      "Charged Particles");
+void runWorker(const int thread_id, const int total_events,
+               Analyzer &analyzer) {
+  EventGenerator eg;
+  if (!eg.init(2212, 2212, "MinimumBias", 13600.0, thread_id)) {
+    return;
+  }
 
-  // 3. Piony
-  Analyzer::get().addChannel(
-      [](const Pythia8::Particle *p) { return p->id() == 211; }, "pip",
-      "Pion+");
-  Analyzer::get().addChannel(
-      [](const Pythia8::Particle *p) { return p->id() == -211; }, "pim",
-      "Pion-");
-
-  // 4. Kaony
-  Analyzer::get().addChannel(
-      [](const Pythia8::Particle *p) { return p->id() == 321; }, "Kp", "Kaon+");
-  Analyzer::get().addChannel(
-      [](const Pythia8::Particle *p) { return p->id() == -321; }, "Km",
-      "Kaon-");
-
-  // 5. Protony
-  Analyzer::get().addChannel(
-      [](const Pythia8::Particle *p) { return p->id() == 2212; }, "p",
-      "Proton");
-  Analyzer::get().addChannel(
-      [](const Pythia8::Particle *p) { return p->id() == -2212; }, "pbar",
-      "Antiproton");
-
-  std::cout << "All channels created\n";
+  eg.generate(analyzer, total_events);
 }
 
 int main() {
-  create_channels();
-  EventGenerator eg;
-  if (!eg.init(2212, 2212, "MinimumBias", 13600.0)) {
-    return 1;
-  }
+
+  std::vector<Analyzer> thread_analyzer(num_of_threads);
+  std::vector<std::thread> threads_jobs;
+  threads_jobs.reserve(num_of_threads);
+
   std::cout << "Starting generating events\n";
 
-  eg.generate();
-
-  Analyzer::get().saveToFile();
+  for (size_t i = 0; i < thread_analyzer.size(); i++) {
+    threads_jobs.emplace_back(runWorker, i, batch_size,
+                              std::ref(thread_analyzer[i]));
+  }
 
   return 0;
 }

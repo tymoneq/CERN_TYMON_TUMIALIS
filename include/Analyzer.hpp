@@ -9,8 +9,6 @@
 
 using namespace Pythia8;
 
-using ParticleFilter = std::function<bool(const Particle *)>;
-
 struct GeneralHistogram {
   std::string name;
   TH1F *h_mult; // Krotność (N)
@@ -27,21 +25,23 @@ struct GeneralHistogram {
 };
 
 class Analyzer {
+public:
+  using ParticleFilter = bool (*)(const Particle *);
+
+  static constexpr int num_of_channels = 8;
+  struct Channel {
+    ParticleFilter filter;
+    GeneralHistogram histograms;
+  };
+
 private:
-  std::vector<pair<ParticleFilter, GeneralHistogram>> channels;
-  Analyzer() = default;
+  std::array<Channel, num_of_channels> channels;
 
   Analyzer(const Analyzer &) = delete;
   Analyzer &operator=(const Analyzer &) = delete;
 
 public:
-  static auto &get() {
-    static Analyzer singleton;
-    return singleton;
-  }
-
-  void addChannel(ParticleFilter filter, const std::string &key,
-                  const std::string &title_label);
+  Analyzer();
 
   void analyze(const std::vector<const Particle *> &Particles);
 

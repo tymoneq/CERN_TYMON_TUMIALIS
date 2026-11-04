@@ -36,10 +36,7 @@ void GeneralHistogram::write() {
   h_phi->Write();
 }
 
-void Analyzer::addChannel(ParticleFilter filter, const std::string &key,
-                          const std::string &title_label) {
-  channels.emplace_back(std::move(filter), GeneralHistogram(key, title_label));
-}
+
 void Analyzer::analyze(const std::vector<const Particle *> &Particles) {
 
   for (const auto *p : Particles) {
@@ -55,6 +52,24 @@ void Analyzer::analyze(const std::vector<const Particle *> &Particles) {
   }
 }
 
+Analyzer::Analyzer()
+    : channels{{{[](const Pythia8::Particle *) { return true; },
+                 GeneralHistogram("all", "All Particles")},
+                {[](const Pythia8::Particle *p) { return p->isCharged(); },
+                 GeneralHistogram("ch", "Charged Particles")},
+                {[](const Pythia8::Particle *p) { return p->id() == 211; },
+                 GeneralHistogram("pip", "Pion+")},
+                {[](const Pythia8::Particle *p) { return p->id() == -211; },
+                 GeneralHistogram("pim", "Pion-")},
+                {[](const Pythia8::Particle *p) { return p->id() == 321; },
+                 GeneralHistogram("Kp", "Kaon+")},
+                {[](const Pythia8::Particle *p) { return p->id() == -321; },
+                 GeneralHistogram("Km", "Kaon-")},
+                {[](const Pythia8::Particle *p) { return p->id() == 2212; },
+                 GeneralHistogram("p", "Proton")},
+                {[](const Pythia8::Particle *p) { return p->id() == -2212; },
+                 GeneralHistogram("pbar", "Antiproton")}}} {}
+
 void Analyzer::saveToFile(const std::string &filename) {
   TFile outFile(filename.c_str(), "RECREATE");
   for (auto &[filter, histos] : channels) {
@@ -62,4 +77,3 @@ void Analyzer::saveToFile(const std::string &filename) {
   }
   outFile.Close();
 }
-
