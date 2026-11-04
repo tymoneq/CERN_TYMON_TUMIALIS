@@ -1,2 +1,2 @@
 clean:
-	rm *.png *.pdf
+	rm plots/*.png plots/*.pdf

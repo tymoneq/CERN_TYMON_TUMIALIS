@@ -29,7 +29,7 @@ class Analyzer {
 public:
   using ParticleFilter = bool (*)(const Particle *);
 
-  static constexpr int num_of_channels = 8;
+  static constexpr int num_of_channels = 7;
   struct Channel {
     ParticleFilter filter;
     GeneralHistogram histograms;

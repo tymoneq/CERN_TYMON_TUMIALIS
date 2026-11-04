@@ -59,9 +59,7 @@ void Analyzer::analyze(const std::vector<const Particle *> &Particles) {
 }
 
 Analyzer::Analyzer()
-    : channels{{{[](const Pythia8::Particle *) { return true; },
-                 GeneralHistogram("all", "All Particles")},
-                {[](const Pythia8::Particle *p) { return p->isCharged(); },
+    : channels{{{[](const Pythia8::Particle *p) { return p->isCharged(); },
                  GeneralHistogram("ch", "Charged Particles")},
                 {[](const Pythia8::Particle *p) { return p->id() == 211; },
                  GeneralHistogram("pip", "Pion+")},
@@ -78,6 +76,8 @@ Analyzer::Analyzer()
 
 void Analyzer::saveToFile(const std::string &filename) {
   TFile outFile(filename.c_str(), "RECREATE");
+  outFile.cd();
+
   for (auto &[filter, histos] : channels) {
     histos.write();
   }

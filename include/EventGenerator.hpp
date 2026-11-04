@@ -10,8 +10,7 @@ private:
 
 public:
   // currently the only process_type is MinimumBias
-  EventGenerator()
-      : pythia("/home/tymon/coding/Pythia/pythia8318/share/Pythia8/xmldoc") {
+  EventGenerator() : pythia(PYTHIA_XML_DIR) { // macro from cmake
     // Wyciszenie logów
     pythia.readString("Next:numberShowInfo = 0");
     pythia.readString("Next:numberShowProcess = 0");
