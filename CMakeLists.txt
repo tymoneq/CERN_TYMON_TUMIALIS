@@ -7,9 +7,6 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(PYTHIA_PATH "/home/tymon/coding/Pythia/pythia8318") 
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 1. Włączenie Link-Time Optimization (LTO) dla maksymalnej wydajności (optymalizacja dla 100k zdarzeń)
@@ -29,42 +26,59 @@ set(Vdt_FOUND TRUE CACHE BOOL "" FORCE)
 # 3. Wyszukiwanie pakietu ROOT
 find_package(ROOT REQUIRED COMPONENTS Core Hist RIO)
 
-# --- NOWE: Automatyczne pobranie ścieżki XML z Pythii ---
-execute_process(
-    COMMAND ${PYTHIA_PATH}/bin/pythia8-config --xmldoc
-    OUTPUT_VARIABLE PYTHIA_XML_DIR
-    OUTPUT_STRIP_TRAILING_WHITESPACE
+# --- 4. AUTOMATYCZNE WYKRYWANIE PYTHIA 8 ---
+# Szukamy narzędzia pythia8-config w systemie lub w ścieżce podanej przez użytkownika
+find_program(PYTHIA_CONFIG pythia8-config 
+    HINTS $ENV{PYTHIA_PATH}/bin /usr/bin /usr/local/bin /opt/pythia8/bin
 )
 
-# 4. Automatyczne zbieranie źródeł C++
+if(NOT PYTHIA_CONFIG)
+    message(FATAL_ERROR "Nie znaleziono pythia8-config! Upewnij się, że Pythia 8 jest zainstalowana i dodana do zmiennej PATH, lub ustaw zmienną środowiskową PYTHIA_PATH (np. export PYTHIA_PATH=/sciezka/do/pythia) przed uruchomieniem CMake.")
+endif()
+
+# Odpytanie pythia8-config o ścieżki do nagłówków, bibliotek i plików XML
+execute_process(COMMAND ${PYTHIA_CONFIG} --includedir OUTPUT_VARIABLE PYTHIA_INCLUDE_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${PYTHIA_CONFIG} --libdir OUTPUT_VARIABLE PYTHIA_LIB_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${PYTHIA_CONFIG} --xmldoc OUTPUT_VARIABLE PYTHIA_XML_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+message(STATUS "Pythia 8 zlokalizowana pomyślnie:")
+message(STATUS " - Nagłówki: ${PYTHIA_INCLUDE_DIR}")
+message(STATUS " - Biblioteki: ${PYTHIA_LIB_DIR}")
+message(STATUS " - Pliki XML: ${PYTHIA_XML_DIR}")
+
+# 5. Automatyczne zbieranie źródeł C++
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
-# 5. Utworzenie celu wykonywalnego
+# 6. Utworzenie celu wykonywalnego
 add_executable(app main.cpp ${SOURCES})
 
-# --- NOWE: Przekazanie ścieżki XML do kodu C++ jako makro preprocesora ---
+# Przekazanie ścieżki XML do kodu C++ jako makro preprocesora
 target_compile_definitions(app PRIVATE PYTHIA_XML_DIR="${PYTHIA_XML_DIR}")
 
-# 6. Flagi kompilatora
+# 7. Flagi kompilatora
 target_compile_options(app PRIVATE -Wall -Wextra -Wpedantic)
 target_compile_options(app PRIVATE
-    $<$<CONFIG:Debug>:-O0 -g3 -DDEBUG>
+    $<$<CONFIG:Debug>:-O0 -Wshadow -Wall -fsanitize=address,leak,undefined,float-divide-by-zero,float-cast-overflow -g -fsignaling-nans -fnon-call-exceptions>
     $<$<CONFIG:Release>:-O3 -march=native>
 )
 
-# 7. Ścieżki nagłówkowe
+# 8. Ścieżki nagłówkowe
 target_include_directories(app PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${PYTHIA_PATH}/include
+    ${PYTHIA_INCLUDE_DIR}
     ${ROOT_INCLUDE_DIRS}
 )
 
-# 8. Linkowanie Pythii 8 oraz ROOT-a
-target_link_directories(app PRIVATE ${PYTHIA_PATH}/lib)
+# 9. Linkowanie Pythii 8 oraz ROOT-a
+target_link_directories(app PRIVATE ${PYTHIA_LIB_DIR})
 target_link_libraries(app PRIVATE 
     pythia8 
     dl 
     ROOT::Core 
     ROOT::Hist 
     ROOT::RIO
+)
+
+target_link_options(app PRIVATE
+        $<$<CONFIG:Debug>:-O0 -Wshadow -Wall -fsanitize=address,leak,undefined,float-divide-by-zero,float-cast-overflow -g -fsignaling-nans -fnon-call-exceptions>
 )

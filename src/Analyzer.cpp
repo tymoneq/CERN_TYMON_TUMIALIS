@@ -3,6 +3,7 @@
 GeneralHistogram::GeneralHistogram(const std::string &key,
                                    const std::string &title_label)
     : name(key) {
+  // Book one event-level multiplicity and three particle-level distributions.
   h_mult = new TH1F((key + "_mult").c_str(),
                     (title_label + " Multiplicity;N;Events").c_str(), 400, 0.0,
                     400.0);
@@ -17,7 +18,15 @@ GeneralHistogram::GeneralHistogram(const std::string &key,
                    M_PI);
 }
 
+GeneralHistogram::~GeneralHistogram() {
+  delete h_mult;
+  delete h_pT;
+  delete h_eta;
+  delete h_phi;
+}
+
 void GeneralHistogram::fillParticle(const Particle *p) {
+  // Count this particle and record its kinematic values.
   total_count++;
   h_pT->Fill(p->pT());
   h_eta->Fill(p->eta());
@@ -25,6 +34,7 @@ void GeneralHistogram::fillParticle(const Particle *p) {
 }
 
 void GeneralHistogram::endEvent() {
+  // Store the category count for the completed event, then reset it.
   h_mult->Fill(total_count);
   total_count = 0;
 }
@@ -59,6 +69,7 @@ void Analyzer::analyze(const std::vector<const Particle *> &Particles) {
 }
 
 Analyzer::Analyzer()
+    // Each channel pairs a particle-selection rule with its histograms.
     : channels{{{[](const Pythia8::Particle *p) { return p->isCharged(); },
                  GeneralHistogram("ch", "Charged Particles")},
                 {[](const Pythia8::Particle *p) { return p->id() == 211; },
@@ -75,6 +86,7 @@ Analyzer::Analyzer()
                  GeneralHistogram("pbar", "Antiproton")}}} {}
 
 void Analyzer::saveToFile(const std::string &filename) {
+  // Write every category's histograms into a new ROOT file.
   TFile outFile(filename.c_str(), "RECREATE");
   outFile.cd();
 
@@ -86,6 +98,7 @@ void Analyzer::saveToFile(const std::string &filename) {
 
 Analyzer &Analyzer::operator+=(const Analyzer &other) {
 
+  // Add matching channel histograms when combining worker results.
   for (size_t i = 0; i < channels.size(); ++i) {
     channels[i].histograms.add(other.channels[i].histograms);
   }

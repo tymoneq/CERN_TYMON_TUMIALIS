@@ -11,12 +11,14 @@
 void draw_plots() {
   gErrorIgnoreLevel = kWarning;
 
+  // Read the histograms produced by the simulation.
   TFile* file = TFile::Open("analysis.root", "READ");
   if (!file || file->IsZombie()) {
     std::cerr << "Error opening analysis.root!" << std::endl;
     return;
   }
 
+  // Match each particle category with each histogram variable.
   std::vector<std::string> particles = {"ch", "pip", "pim", "Kp",
                                         "Km", "p",   "pbar"};
   std::vector<std::string> variables = {"mult", "pt", "eta", "phi"};
@@ -49,7 +51,7 @@ void draw_plots() {
         continue;
       }
 
-
+      // Format each histogram and save it in both requested file formats.
       TString canvasName = Form("c_%s_%s", part.c_str(), var.c_str());
       TString canvasTitle =
           Form("%s - %s", particle_labels[part].c_str(), var.c_str());

@@ -5,11 +5,13 @@ bool EventGenerator::init(const int32_t particle_a, const int32_t particle_b,
                           const std::string &proccess_type, const double eCM,
                           const int thread_id) {
 
+  // Configure the beams and collision energy for this generator instance.
   pythia.readString("Beams:idA = " + std::to_string(particle_a));
   pythia.readString("Beams:idB = " + std::to_string(particle_b));
   pythia.readString("Beams:eCM = " + std::to_string(eCM));
 
   if (thread_id != -1) {
+    // Give each worker a repeatable, distinct random-number sequence.
     pythia.readString("Random:setSeed = on");
     pythia.readString("Random:seed = " + std::to_string(thread_id + 1));
   }
@@ -31,12 +33,13 @@ bool EventGenerator::init(const int32_t particle_a, const int32_t particle_b,
 
 void EventGenerator::generate(Analyzer &analyzer, int32_t num_of_events) {
 
+  // Failed generation attempts are skipped; only successful events are analyzed.
   for (int32_t iEvent = 0; iEvent < num_of_events; iEvent++) {
 
     if (!pythia.next())
       continue;
 
-    // this prevents doing deep copy of particles
+    // Store pointers to final particles to avoid copying Pythia particle data.
     std::vector<const Particle *> finalParticles;
     finalParticles.reserve(pythia.event.size());
 

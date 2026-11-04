@@ -2,12 +2,9 @@
 
 make clean
 echo "[+] Compiling Solution"
-mkdir -p build
-cd build 
-cmake ..
-cd ../
+cmake -S . -B build
 cmake --build build
-echo "[+] Compilation finished with success"
+echo "[+] Compilation finished successfully"
 echo "[+] Starting simulation"
 ./build/app
 

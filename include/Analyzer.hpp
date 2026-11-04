@@ -9,6 +9,7 @@
 
 using namespace Pythia8;
 
+// Holds the four distributions and event count for one particle category.
 struct GeneralHistogram {
   std::string name;
   TH1F *h_mult; // Krotność (N)
@@ -23,12 +24,14 @@ struct GeneralHistogram {
   void endEvent();
   void write();
   void add(const GeneralHistogram &other);
+  ~GeneralHistogram();
 };
 
 class Analyzer {
 public:
   using ParticleFilter = bool (*)(const Particle *);
 
+  // Channels cover charged particles and the requested identified species.
   static constexpr int num_of_channels = 7;
   struct Channel {
     ParticleFilter filter;

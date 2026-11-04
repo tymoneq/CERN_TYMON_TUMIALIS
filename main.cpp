@@ -2,9 +2,10 @@
 #include "include/EventGenerator.hpp"
 #include <iostream>
 
-constexpr int num_of_threads = 8;
+constexpr int num_of_threads = 4;
 constexpr int batch_size = 100'000 / num_of_threads;
 
+// Run an independent Pythia generator and analyzer for one worker thread.
 void runWorker(const int thread_id, const int total_events,
                Analyzer &analyzer) {
   EventGenerator eg;
@@ -16,7 +17,9 @@ void runWorker(const int thread_id, const int total_events,
 }
 
 int main() {
+  TH1::AddDirectory(kFALSE);
 
+  // Keep histogram state separate per thread, then merge after joining.
   std::vector<Analyzer> thread_analyzer(num_of_threads);
   std::vector<std::thread> threads_jobs;
   threads_jobs.reserve(num_of_threads);
@@ -28,13 +31,14 @@ int main() {
                               std::ref(thread_analyzer[i]));
   }
 
-  //  waiting for all threads
+  // Wait until every worker has finished before combining its histograms.
   for (auto &thread : threads_jobs) {
     if (thread.joinable()) {
       thread.join();
     }
   }
 
+  // Combine worker histograms and write the final ROOT file.
   std::cout << "Scaling results\n";
 
   for (size_t i = 1; i < thread_analyzer.size(); i++) {
