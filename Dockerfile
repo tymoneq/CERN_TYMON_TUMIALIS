@@ -1,30 +1,27 @@
-# Używamy oficjalnego obrazu ROOT-a (Ubuntu 22.04 + ROOT 6.30)
 FROM rootproject/root:6.30.04-ubuntu22.04
 
-# Przełączamy się na root-a, żeby doinstalować pakiety
+# Changing to root to install packages
 USER root
-RUN apt-get update && apt-get install -y wget cmake g++ make tar && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y wget cmake g++ make tar git && rm -rf /var/lib/apt/lists/*
 
-# Pobieranie i kompilacja Pythia 8 (zajmuje ok. 2-3 minuty)
+# Downloading and compiling
 WORKDIR /opt
-RUN wget https://pythia.org/download/pythia83/pythia8318.tgz && \
-    tar -xvf pythia8318.tgz && \
-    rm pythia8318.tgz && \
+RUN git clone https://gitlab.com/Pythia8/releases.git --branch pythia8318 --single-branch pythia8318 && \
     cd pythia8318 && \
     ./configure && \
     make -j$(nproc)
 
-# Ustawienie zmiennych środowiskowych, z których skorzysta Twój CMake i C++
+# Setting up env variables
 ENV PYTHIA8DATA="/opt/pythia8318/share/Pythia8/xmldoc"
 ENV PYTHIA_PATH="/opt/pythia8318"
 
-# Skopiowanie Twojego projektu do kontenera
+# Copying solution to container
 WORKDIR /workspace
 COPY . /workspace
 
-# Kompilacja Twojego kodu
+# Compiling solution
 WORKDIR /workspace/build
 RUN cmake .. && make -j$(nproc)
 
-# Domyślna komenda po uruchomieniu kontenera - odpala terminal
+
 CMD ["/bin/bash"]

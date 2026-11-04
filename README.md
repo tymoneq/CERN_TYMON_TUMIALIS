@@ -1,27 +1,37 @@
 # Proton-proton event simulation and analysis
 
-This project generates proton-proton collisions with Pythia 8, analyzes final-state particles, saves the histograms to a ROOT file, and exports plots as PNG and PDF files. It is configured for minimum-bias (SoftQCD) collisions at a center-of-mass energy of 13.6 TeV.
+This C++17 program generates minimum-bias (SoftQCD) proton-proton collisions with Pythia 8 at a center-of-mass energy of 13.6 TeV. It analyzes final-state particles, writes histograms to a ROOT file, and exports plots as PNG and PDF files.
 
-## Requirements
+## Multithreading
 
-- A C++17 compiler and CMake 3.15 or newer
-- ROOT 6, including the Core, Hist, and RIO components
-- Pythia 8, including its headers, library, and `pythia8-config` utility
-- `root` and `pythia8-config` available in the shell environment, with ROOT initialized as required by its installation
+The simulation runs **8 worker threads concurrently**. Each thread has its own Pythia generator and analyzer, and processes 12,500 event attempts (100,000 attempts total). The worker histograms are merged after all threads finish. The program is intended to make use of up to 8 CPU cores; actual parallel execution depends on the cores available to the host and any limits imposed by the operating system or Docker. It does not reserve or pin specific cores.
 
-The Pythia installation path is currently set in `CMakeLists.txt` to `/home/tymon/coding/Pythia/pythia8318`. Change `PYTHIA_PATH` there if Pythia is installed elsewhere. CMake uses `pythia8-config --xmldoc` to find Pythia's XML settings directory.
+Failed Pythia generation attempts are skipped, so fewer than 100,000 events may be analyzed.
 
-## Run
+## Run locally
 
-From the project root, run the supplied script with Bash:
+### Requirements
+
+- Linux with a C++17 compiler and CMake 3.15 or newer
+- ROOT 6 with the Core, Hist, and RIO components; `root` must be available in the shell
+- Pythia 8 with its headers, library, XML data, and `pythia8-config` available
+- ROOT's environment initialized as required by its installation
+
+Set `PYTHIA_PATH` if Pythia is not already discoverable. It should point to the Pythia installation directory containing `bin/pythia8-config`:
 
 ```bash
-bash run.sh
+export PYTHIA_PATH=/path/to/pythia8
 ```
 
-The script cleans existing plot images, configures and builds the CMake project in `build/`, runs the simulation, and invokes the ROOT plotting macro. Running it with `bash` avoids relying on the script's current shebang line.
+From the project root, run:
 
-The equivalent steps can be run separately:
+```bash
+bash run_local.sh
+```
+
+The script configures and builds the project in `build/`, runs the simulation, then runs the ROOT plotting macro. It clears existing files in `plots/` before starting. On completion, `analysis.root` is in the project root, and the PNG and PDF plots are in `plots/`.
+
+To build or run each step separately, from the project root:
 
 ```bash
 cmake -S . -B build
@@ -30,17 +40,26 @@ cmake --build build
 root -l -b -q draw_plots.C
 ```
 
-Run these commands from the project root. The simulation writes `analysis.root` there, and the plotting macro writes its output under `plots/`. The `plots/` directory must exist before running the macro; it is included in this repository.
+## Run with Docker
 
-## What the program does
+### Requirements
 
-1. `main.cpp` creates eight worker threads. Each worker initializes its own Pythia instance for proton beams (`2212`, `2212`), minimum-bias SoftQCD, and `eCM = 13600` GeV. Each processes 12500 event attempts, for 100,000 attempts in total. A distinct deterministic Pythia seed is assigned to each worker (1 through 8).
-2. `EventGenerator` skips attempts for which `pythia.next()` fails. For each successfully generated event, it collects only particles marked as final state by Pythia's `isFinal()` and passes them to the analyzer.
-3. `Analyzer` fills distributions for all charged particles and for π+, π−, K+, K−, protons, and antiprotons. For each category it records the per-event multiplicity and the particle-level transverse momentum, pseudorapidity, and azimuthal angle.
-4. Each thread accumulates its own histograms. After all threads finish, `main.cpp` adds the worker histograms and saves the combined output to `analysis.root`.
-5. `draw_plots.C` reads the ROOT file and saves one canvas per available category/variable combination as both PNG and PDF in `plots/` (28 plots of each format when all histograms are present).
+- Docker Engine running on the machine
+- Internet access for the initial image build, which downloads and builds Pythia 8
 
-## Output histograms and plots
+From the project root, run:
+
+```bash
+bash run_docker.sh
+```
+
+The script builds the `cern_analysis` image, starts a container to run the simulation and plotting macro, and removes the container when it exits. The host's `plots/` directory is mounted into the container, so the generated PNG and PDF plots and a copy of `analysis.root` are available there. Existing files in `plots/` are cleared before the run.
+
+The container uses the same 8-thread simulation. Docker may constrain the CPU resources available to it; this script does not set an explicit CPU limit or reserve 8 cores.
+
+## What the program analyzes
+
+For all charged particles and for π+, π−, K+, K−, protons, and antiprotons, the program records per-event multiplicity and particle-level transverse momentum, pseudorapidity, and azimuthal angle. Each thread fills its own histograms; the program combines them and writes the result to `analysis.root`. `draw_plots.C` creates one plot per category and variable, as PNG and PDF files (28 of each when all histograms are present).
 
 The ROOT file contains these histograms for each category key `ch`, `pip`, `pim`, `Kp`, `Km`, `p`, and `pbar`:
 
@@ -48,14 +67,11 @@ The ROOT file contains these histograms for each category key `ch`, `pip`, `pim`
 | --- | --- | --- |
 | Multiplicity | `<key>_mult` | 400 bins, 0 to 400 |
 | Transverse momentum | `<key>_pt` | 100 bins, 0 to 10 GeV/c |
-| Pseudorapidity | `<key>_eta` | 1,100 bins, -5 to 5 |
+| Pseudorapidity | `<key>_eta` | 100 bins, -5 to 5 |
 | Azimuthal angle | `<key>_phi` | 64 bins, 0 to π radians |
 
-The angle distribution is filled with the absolute value of Pythia's φ. Plot filenames follow the same keys, for example `plots/pip_pt.png` and `plots/pip_pt.pdf`. The plotting macro sets axis labels and draws the histogram; it does not add legends because each canvas contains one distribution.
+The angle distribution is filled with the absolute value of Pythia's φ. Plot filenames use the same keys, for example `plots/pip_pt.png` and `plots/pip_pt.pdf`.
 
-## Notes
+## Implementation notes
 
-- The PDF specification requests 100 η bins, but the current implementation uses 1,100. Change the η histogram constructor in `src/Analyzer.cpp` to 100 bins if strict compliance with that requested bin count is needed.
-- The PDF gives example histogram names such as `hN_pip`; the current ROOT names instead use `<key>_mult`, `<key>_pt`, `<key>_eta`, and `<key>_phi`.
-- The requested output count is 100,000 event attempts. Since failed Pythia generation attempts are skipped, the number of events actually analyzed can be lower.
-- The supplied run script removes existing plot files before running. It does not remove `analysis.root` explicitly; the analyzer recreates that file when the application completes.
+- Example histogram names in the specification, such as `hN_pip`, differ from the names currently written by the program: `<key>_mult`, `<key>_pt`, `<key>_eta`, and `<key>_phi`.

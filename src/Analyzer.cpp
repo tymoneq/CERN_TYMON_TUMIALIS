@@ -12,7 +12,7 @@ GeneralHistogram::GeneralHistogram(const std::string &key,
                   0.0, 10.0);
   h_eta =
       new TH1F((key + "_eta").c_str(),
-               (title_label + " Eta;#eta;Particles").c_str(), 1100, -5.0, 5.0);
+               (title_label + " Eta;#eta;Particles").c_str(), 100, -5.0, 5.0);
   h_phi = new TH1F((key + "_phi").c_str(),
                    (title_label + " Phi;#phi [rad];Particles").c_str(), 64, 0.0,
                    M_PI);

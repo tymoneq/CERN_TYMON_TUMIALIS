@@ -1,6 +1,13 @@
 #! bin/bash
 
-make clean
+if [ ! -d "plots" ]; then
+    echo "[+] Creating plots folder"
+    mkdir plots
+elif [ "$(ls -A plots 2>/dev/null | wc -l)" -gt 0 ]; then
+    echo "[+] Clearing plots folder"
+    rm -fr plots/*.*
+fi
+
 echo "[+] Compiling Solution"
 cmake -S . -B build
 cmake --build build

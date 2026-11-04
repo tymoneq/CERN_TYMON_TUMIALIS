@@ -1,0 +1,6 @@
+build/
+.env
+.git/
+.vscode/
+plots/
+analysis.root
