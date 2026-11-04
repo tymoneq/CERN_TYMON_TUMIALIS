@@ -36,6 +36,12 @@ void GeneralHistogram::write() {
   h_phi->Write();
 }
 
+void GeneralHistogram::add(const GeneralHistogram &other) {
+  h_mult->Add(other.h_mult);
+  h_pT->Add(other.h_pT);
+  h_eta->Add(other.h_eta);
+  h_phi->Add(other.h_phi);
+}
 
 void Analyzer::analyze(const std::vector<const Particle *> &Particles) {
 
@@ -76,4 +82,12 @@ void Analyzer::saveToFile(const std::string &filename) {
     histos.write();
   }
   outFile.Close();
+}
+
+Analyzer &Analyzer::operator+=(const Analyzer &other) {
+
+  for (size_t i = 0; i < channels.size(); ++i) {
+    channels[i].histograms.add(other.channels[i].histograms);
+  }
+  return *this;
 }

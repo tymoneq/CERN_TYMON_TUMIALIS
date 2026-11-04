@@ -22,6 +22,7 @@ struct GeneralHistogram {
   void fillParticle(const Particle *p);
   void endEvent();
   void write();
+  void add(const GeneralHistogram &other);
 };
 
 class Analyzer {
@@ -37,9 +38,6 @@ public:
 private:
   std::array<Channel, num_of_channels> channels;
 
-  Analyzer(const Analyzer &) = delete;
-  Analyzer &operator=(const Analyzer &) = delete;
-
 public:
   Analyzer();
 
@@ -47,4 +45,6 @@ public:
 
   void saveToFile(const std::string &filename = "analysis.root");
   ~Analyzer() = default;
+
+  Analyzer &operator+=(const Analyzer &other);
 };
