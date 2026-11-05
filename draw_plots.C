@@ -60,7 +60,6 @@ void draw_plots() {
       h->SetLineColor(kBlue + 1);
       h->SetLineWidth(2);
       h->SetFillColor(kAzure - 9);
-      h->GetXaxis()->SetTitle(axis_titles[var].c_str());
       h->GetYaxis()->SetTitle("Events / Particles");
 
       h->Draw("HIST");
@@ -69,6 +68,8 @@ void draw_plots() {
 
       leg->SetBorderSize(0);
       leg->SetFillStyle(0);
+      leg->SetTextFont(42);
+      leg->SetTextSize(0.04);
 
       leg->AddEntry(h, particle_labels[part].c_str(), "f");
       leg->AddEntry((TObject*)0, Form("Entries: %.0f", h->GetEntries()), "");
@@ -78,7 +79,7 @@ void draw_plots() {
       c->SaveAs(Form("plots/%s_%s.png", part.c_str(), var.c_str()));
       c->SaveAs(Form("plots/%s_%s.pdf", part.c_str(), var.c_str()));
 
-    //  delete leg;
+      //  delete leg;
       delete c;
       saved_count++;
     }
