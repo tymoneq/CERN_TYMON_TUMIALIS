@@ -33,14 +33,16 @@ bool EventGenerator::init(const int32_t particle_a, const int32_t particle_b,
 
 void EventGenerator::generate(Analyzer &analyzer, int32_t num_of_events) {
 
-  // Failed generation attempts are skipped; only successful events are analyzed.
+  std::vector<const Particle *> finalParticles;
+  // Failed generation attempts are skipped; only successful events are
+  // analyzed.
   for (int32_t iEvent = 0; iEvent < num_of_events; iEvent++) {
 
     if (!pythia.next())
       continue;
 
     // Store pointers to final particles to avoid copying Pythia particle data.
-    std::vector<const Particle *> finalParticles;
+    finalParticles.clear();
     finalParticles.reserve(pythia.event.size());
 
     for (int i = 0; i < pythia.event.size(); ++i) {

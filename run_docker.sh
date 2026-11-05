@@ -1,7 +1,7 @@
-#! bin/bash
+#!/bin/bash
 
 echo "[+] building docker" 
-
+set -e
 docker build -t cern_analysis .
 
 if [ ! -d "plots" ]; then
@@ -20,7 +20,7 @@ docker run --rm -v "$PWD/plots:/workspace/build/plots" cern_analysis /bin/bash -
         rm plots/*.png plots/*.pdf plots/*.root 2>/dev/null || true
     fi
     
-    ./app
+    ./app -n 100000 -t 8
     cp analysis.root plots/
     root -l -b -q ../draw_plots.C
 "

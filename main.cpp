@@ -1,23 +1,49 @@
 #include "include/Analyzer.hpp"
 #include "include/EventGenerator.hpp"
+#include <TROOT.h>
 #include <iostream>
-#include <TROOT.h> 
-
-constexpr int num_of_threads = 8;
-constexpr int batch_size = 100'000 / num_of_threads;
+#include <unistd.h>
 
 // Run an independent Pythia generator and analyzer for one worker thread.
 void runWorker(const int thread_id, const int total_events,
                Analyzer &analyzer) {
   EventGenerator eg;
   if (!eg.init(2212, 2212, "MinimumBias", 13600.0, thread_id)) {
-    return;
+    std::cerr << "[Critical Error] thread " << std::this_thread::get_id()
+              << ": pythia.init() ended with error" << std::endl;
+    throw std::runtime_error("Pythia initialization failed in thread");
   }
 
   eg.generate(analyzer, total_events);
 }
 
-int main() {
+void usage() {
+
+  std::cout << "Usage -n [number of simulations] -t [number of threads]"
+            << std::endl;
+}
+
+int main(int argc, char *argv[]) {
+
+  int num_of_threads = 1;
+  int total_size = 100'000;
+
+  int opt;
+  while ((opt = getopt(argc, argv, "v:t:")) != -1) {
+    switch (opt) {
+    case 'n':
+      total_size = strtol(optarg, (char **)NULL, 10);
+      break;
+    case 't':
+      num_of_threads = strtol(optarg, (char **)NULL, 10);
+      break;
+    default:
+      break;
+    }
+  }
+
+  int batch_size = (total_size + (num_of_threads - 1)) / num_of_threads;
+
   TH1::AddDirectory(kFALSE);
   ROOT::EnableThreadSafety();
 
@@ -41,7 +67,7 @@ int main() {
   }
 
   // Combine worker histograms and write the final ROOT file.
-  std::cout << "Scaling results\n";
+  std::cout << "Merging results\n";
 
   for (size_t i = 1; i < thread_analyzer.size(); i++) {
     thread_analyzer[0] += thread_analyzer[i];

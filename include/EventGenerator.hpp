@@ -1,6 +1,7 @@
+#pragma once
+
 #include "Analyzer.hpp"
 #include "Pythia8/Pythia.h"
-#pragma once
 
 using namespace Pythia8;
 
@@ -20,7 +21,7 @@ public:
             const int thread_id = -1);
 
   // Generate events and pass their final-state particles to the analyzer.
-  void generate(Analyzer &analyzer, const int num_of_events = 100'000);
+  void generate(Analyzer &analyzer, const int32_t num_of_events = 100'000);
 
   ~EventGenerator() {}
 };

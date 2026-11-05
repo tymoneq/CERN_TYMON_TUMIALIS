@@ -16,12 +16,20 @@ if(ipo_supported)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-# 2. Tworzenie atrapy pliku vdtMath.h, aby oszukać skrypt spradzający wersję FindVdt.cmake
-file(WRITE "${CMAKE_BINARY_DIR}/fake_vdt/vdt/vdtMath.h" "#define VDT_VERSION 0.4.4\n")
-set(VDT_INCLUDE_DIR "${CMAKE_BINARY_DIR}/fake_vdt" CACHE PATH "" FORCE)
-set(VDT_LIBRARY "/usr/lib/libdl.so" CACHE FILEPATH "" FORCE)
-set(VDT_FOUND TRUE CACHE BOOL "" FORCE)
-set(Vdt_FOUND TRUE CACHE BOOL "" FORCE)
+if(NOT VDT_FOUND)
+    # Tworzenie atrapy nagłówka wersji
+    file(WRITE "${CMAKE_BINARY_DIR}/fake_vdt/vdt/vdtMath.h" "#define VDT_VERSION 0.4.4\n")
+    set(VDT_INCLUDE_DIR "${CMAKE_BINARY_DIR}/fake_vdt" CACHE PATH "Fake VDT include" FORCE)
+    
+    # Dynamiczne znalezienie systemowej biblioteki 'dl' (zamiast sztywnego /usr/lib/...)
+    find_library(SYSTEM_DL_LIB NAMES dl)
+    if(SYSTEM_DL_LIB)
+        set(VDT_LIBRARY ${SYSTEM_DL_LIB} CACHE FILEPATH "Fake VDT library" FORCE)
+    endif()
+    
+    set(VDT_FOUND TRUE CACHE BOOL "Fake VDT found" FORCE)
+    set(Vdt_FOUND TRUE CACHE BOOL "Fake VDT found" FORCE)
+endif()
 
 # 3. Wyszukiwanie pakietu ROOT
 find_package(ROOT REQUIRED COMPONENTS Core Hist RIO)
@@ -59,7 +67,7 @@ target_compile_definitions(app PRIVATE PYTHIA_XML_DIR="${PYTHIA_XML_DIR}")
 target_compile_options(app PRIVATE -Wall -Wextra -Wpedantic)
 target_compile_options(app PRIVATE
     $<$<CONFIG:Debug>:-O0 -Wshadow -Wall -fsanitize=address,leak,undefined,float-divide-by-zero,float-cast-overflow -g -fsignaling-nans -fnon-call-exceptions>
-    $<$<CONFIG:Release>:-O3 -march=native>
+    $<$<CONFIG:Release>:-O3 >
 )
 
 # 8. Ścieżki nagłówkowe

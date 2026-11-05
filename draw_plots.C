@@ -65,15 +65,15 @@ void draw_plots() {
 
       h->Draw("HIST");
 
-    //  TLegend* leg = new TLegend(0.65, 0.75, 0.88, 0.88);
+      TLegend* leg = new TLegend(0.65, 0.75, 0.88, 0.88);
 
-    //  leg->SetBorderSize(0);
-    //  leg->SetFillStyle(0);
+      leg->SetBorderSize(0);
+      leg->SetFillStyle(0);
 
-    //  leg->AddEntry(h, particle_labels[part].c_str(), "f");
-    //  leg->AddEntry((TObject*)0, Form("Entries: %.0f", h->GetEntries()), "");
+      leg->AddEntry(h, particle_labels[part].c_str(), "f");
+      leg->AddEntry((TObject*)0, Form("Entries: %.0f", h->GetEntries()), "");
 
-    //  leg->Draw();
+      leg->Draw();
 
       c->SaveAs(Form("plots/%s_%s.png", part.c_str(), var.c_str()));
       c->SaveAs(Form("plots/%s_%s.pdf", part.c_str(), var.c_str()));
