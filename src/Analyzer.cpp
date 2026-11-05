@@ -4,16 +4,16 @@ GeneralHistogram::GeneralHistogram(const std::string &key,
                                    const std::string &title_label)
     : name(key) {
   // Book one event-level multiplicity and three particle-level distributions.
-  h_mult = new TH1F((key + "_mult").c_str(),
+  h_mult = new TH1F(("hN_" + key).c_str(),
                     (title_label + " Multiplicity;N;Events").c_str(), 400, 0.0,
                     400.0);
-  h_pT = new TH1F((key + "_pt").c_str(),
+  h_pT = new TH1F(("hPt_" + key).c_str(),
                   (title_label + " pT;p_{T} [GeV/c];Particles").c_str(), 100,
                   0.0, 10.0);
   h_eta =
-      new TH1F((key + "_eta").c_str(),
+      new TH1F(("hEta_" + key).c_str(),
                (title_label + " Eta;#eta;Particles").c_str(), 100, -5.0, 5.0);
-  h_phi = new TH1F((key + "_phi").c_str(),
+  h_phi = new TH1F(("hPhi_" + key).c_str(),
                    (title_label + " Phi;#phi [rad];Particles").c_str(), 64, 0.0,
                    M_PI);
 }

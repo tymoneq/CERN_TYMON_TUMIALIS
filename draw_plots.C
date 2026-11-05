@@ -6,6 +6,7 @@
 #include "TError.h"
 #include "TFile.h"
 #include "TH1F.h"
+#include "TLegend.h"
 #include "TString.h"
 
 void draw_plots() {
@@ -21,7 +22,7 @@ void draw_plots() {
   // Match each particle category with each histogram variable.
   std::vector<std::string> particles = {"ch", "pip", "pim", "Kp",
                                         "Km", "p",   "pbar"};
-  std::vector<std::string> variables = {"mult", "pt", "eta", "phi"};
+  std::vector<std::string> variables = {"hN", "hPt", "hEta", "hPhi"};
 
   std::map<std::string, std::string> particle_labels = {
       {"ch", "Charged Particles"},
@@ -32,7 +33,6 @@ void draw_plots() {
       {"p", "Proton"},
       {"pbar", "Antiproton"}};
 
-
   std::map<std::string, std::string> axis_titles = {{"mult", "Multiplicity N"},
                                                     {"pt", "p_{T} [GeV/c]"},
                                                     {"eta", "#eta"},
@@ -40,14 +40,14 @@ void draw_plots() {
 
   int saved_count = 0;
 
-
   for (const auto& part : particles) {
     for (const auto& var : variables) {
-      TString histName = Form("%s_%s", part.c_str(), var.c_str());
+      TString histName = Form("%s_%s", var.c_str(), part.c_str());
       TH1F* h = (TH1F*)file->Get(histName);
 
       if (!h) {
-        std::cout << "[WARNING] Histogram doesn't exists: " << histName << std::endl;
+        std::cout << "[WARNING] Histogram doesn't exists: " << histName
+                  << std::endl;
         continue;
       }
 
@@ -57,24 +57,33 @@ void draw_plots() {
           Form("%s - %s", particle_labels[part].c_str(), var.c_str());
       TCanvas* c = new TCanvas(canvasName, canvasTitle, 800, 600);
 
-      
       h->SetLineColor(kBlue + 1);
       h->SetLineWidth(2);
-      h->SetFillColor(kAzure - 9);  
+      h->SetFillColor(kAzure - 9);
       h->GetXaxis()->SetTitle(axis_titles[var].c_str());
       h->GetYaxis()->SetTitle("Events / Particles");
 
       h->Draw("HIST");
 
-      
+    //  TLegend* leg = new TLegend(0.65, 0.75, 0.88, 0.88);
+
+    //  leg->SetBorderSize(0);
+    //  leg->SetFillStyle(0);
+
+    //  leg->AddEntry(h, particle_labels[part].c_str(), "f");
+    //  leg->AddEntry((TObject*)0, Form("Entries: %.0f", h->GetEntries()), "");
+
+    //  leg->Draw();
+
       c->SaveAs(Form("plots/%s_%s.png", part.c_str(), var.c_str()));
       c->SaveAs(Form("plots/%s_%s.pdf", part.c_str(), var.c_str()));
 
+    //  delete leg;
       delete c;
       saved_count++;
     }
   }
 
-  std::cout << "Successfully drown and saved " << saved_count
-            << " plots" << std::endl;
+  std::cout << "Successfully drown and saved " << saved_count << " plots"
+            << std::endl;
 }

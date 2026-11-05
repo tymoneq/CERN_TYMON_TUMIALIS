@@ -1,6 +1,7 @@
 #include "include/Analyzer.hpp"
 #include "include/EventGenerator.hpp"
 #include <iostream>
+#include <TROOT.h> 
 
 constexpr int num_of_threads = 8;
 constexpr int batch_size = 100'000 / num_of_threads;
@@ -18,6 +19,7 @@ void runWorker(const int thread_id, const int total_events,
 
 int main() {
   TH1::AddDirectory(kFALSE);
+  ROOT::EnableThreadSafety();
 
   // Keep histogram state separate per thread, then merge after joining.
   std::vector<Analyzer> thread_analyzer(num_of_threads);
