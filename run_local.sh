@@ -16,5 +16,5 @@ echo "[+] Starting simulation"
 ./build/app -n 100000 -t 8
 
 echo "[+] Running root macro"
-root -l -b -q draw_plots.C &> /dev/null
+root -l -b -q draw_plots.C 
 echo "[+] Finished"
