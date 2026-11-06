@@ -25,6 +25,8 @@ struct GeneralHistogram {
   void write();
   void add(const GeneralHistogram &other);
   ~GeneralHistogram();
+  GeneralHistogram(const GeneralHistogram &other) = delete;
+  GeneralHistogram &operator=(const GeneralHistogram &other) = delete;
 };
 
 class Analyzer {
