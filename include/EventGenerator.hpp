@@ -23,5 +23,8 @@ public:
   // Generate events and pass their final-state particles to the analyzer.
   void generate(Analyzer &analyzer, const int32_t num_of_events = 100'000);
 
+EventGenerator(const EventGenerator& other) = delete;
+  EventGenerator& operator=(const EventGenerator& other) = delete;
+  
   ~EventGenerator() {}
 };

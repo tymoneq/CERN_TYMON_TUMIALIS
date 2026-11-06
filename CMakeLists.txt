@@ -16,6 +16,17 @@ if(ipo_supported)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
+
+
+# 3. Wyszukiwanie pakietu ROOT
+find_package(ROOT REQUIRED COMPONENTS Core Hist RIO)
+
+# --- 4. AUTOMATYCZNE WYKRYWANIE PYTHIA 8 ---
+# Szukamy narzędzia pythia8-config w systemie lub w ścieżce podanej przez użytkownika
+find_program(PYTHIA_CONFIG pythia8-config 
+    HINTS $ENV{PYTHIA_PATH}/bin /usr/bin /usr/local/bin /opt/pythia8/bin
+)
+
 if(NOT VDT_FOUND)
     # Tworzenie atrapy nagłówka wersji
     file(WRITE "${CMAKE_BINARY_DIR}/fake_vdt/vdt/vdtMath.h" "#define VDT_VERSION 0.4.4\n")
@@ -30,15 +41,6 @@ if(NOT VDT_FOUND)
     set(VDT_FOUND TRUE CACHE BOOL "Fake VDT found" FORCE)
     set(Vdt_FOUND TRUE CACHE BOOL "Fake VDT found" FORCE)
 endif()
-
-# 3. Wyszukiwanie pakietu ROOT
-find_package(ROOT REQUIRED COMPONENTS Core Hist RIO)
-
-# --- 4. AUTOMATYCZNE WYKRYWANIE PYTHIA 8 ---
-# Szukamy narzędzia pythia8-config w systemie lub w ścieżce podanej przez użytkownika
-find_program(PYTHIA_CONFIG pythia8-config 
-    HINTS $ENV{PYTHIA_PATH}/bin /usr/bin /usr/local/bin /opt/pythia8/bin
-)
 
 if(NOT PYTHIA_CONFIG)
     message(FATAL_ERROR "Nie znaleziono pythia8-config! Upewnij się, że Pythia 8 jest zainstalowana i dodana do zmiennej PATH, lub ustaw zmienną środowiskową PYTHIA_PATH (np. export PYTHIA_PATH=/sciezka/do/pythia) przed uruchomieniem CMake.")

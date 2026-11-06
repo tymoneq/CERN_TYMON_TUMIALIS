@@ -19,23 +19,29 @@ void runWorker(const int thread_id, const int total_events,
 
 void usage() {
 
-  std::cout << "Usage -n [number of simulations] -t [number of threads]"
+  std::cout << "Usage -n [number of simulations] -t [number of threads greater "
+               "than 0]"
             << std::endl;
+
+  return exit(1);
 }
 
 int main(int argc, char *argv[]) {
 
-  int num_of_threads = 1;
+  int num_of_threads = 8;
   int total_size = 100'000;
 
   int opt;
-  while ((opt = getopt(argc, argv, "v:t:")) != -1) {
+  while ((opt = getopt(argc, argv, "n:t:")) != -1) {
     switch (opt) {
     case 'n':
       total_size = strtol(optarg, (char **)NULL, 10);
       break;
     case 't':
       num_of_threads = strtol(optarg, (char **)NULL, 10);
+      if (num_of_threads == 0) {
+        usage();
+      }
       break;
     default:
       break;

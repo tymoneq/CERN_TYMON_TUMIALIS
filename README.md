@@ -40,6 +40,17 @@ cmake --build build
 root -l -b -q draw_plots.C
 ```
 
+The executable accepts `-n` to set the number of event attempts and `-t` to set
+the number of worker threads. Defaults are 100,000 attempts and 8 threads:
+
+```bash
+./build/app -n 100000 -t 8
+```
+
+Attempts are divided evenly among workers using a ceiling per-worker count, so
+the total number of attempts can exceed `-n` by up to `-t` minus one when the
+count is not evenly divisible. Failed generation attempts are skipped.
+
 ## Run with Docker
 
 ### Requirements
@@ -63,15 +74,13 @@ For all charged particles and for π+, π−, K+, K−, protons, and antiprotons
 
 The ROOT file contains these histograms for each category key `ch`, `pip`, `pim`, `Kp`, `Km`, `p`, and `pbar`:
 
-| Variable | ROOT histogram name | Binning in the implementation |
+| Variable | ROOT histogram name | Binning |
 | --- | --- | --- |
-| Multiplicity | `<key>_mult` | 400 bins, 0 to 400 |
-| Transverse momentum | `<key>_pt` | 100 bins, 0 to 10 GeV/c |
-| Pseudorapidity | `<key>_eta` | 100 bins, -5 to 5 |
-| Azimuthal angle | `<key>_phi` | 64 bins, 0 to π radians |
+| Multiplicity | `hN_<key>` | 400 bins, 0 to 400 |
+| Transverse momentum | `hPt_<key>` | 100 bins, 0 to 10 GeV/c |
+| Pseudorapidity | `hEta_<key>` | 100 bins, -5 to 5 |
+| Azimuthal angle | `hPhi_<key>` | 64 bins, 0 to π radians |
 
-The angle distribution is filled with the absolute value of Pythia's φ. Plot filenames use the same keys, for example `plots/pip_pt.png` and `plots/pip_pt.pdf`.
-
-## Implementation notes
-
-- Example histogram names in the specification, such as `hN_pip`, differ from the names currently written by the program: `<key>_mult`, `<key>_pt`, `<key>_eta`, and `<key>_phi`.
+The angle distribution is filled with the absolute value of Pythia's φ. Plot
+filenames use the category key and ROOT variable prefix, for example
+`plots/pip_hPt.png` and `plots/pip_hPt.pdf`.
